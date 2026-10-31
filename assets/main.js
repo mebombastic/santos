@@ -205,7 +205,7 @@
       if (i < words.length - 1) el.appendChild(document.createTextNode(" "));
     });
   }
-  var wordEls = Array.prototype.slice.call(document.querySelectorAll(".lead[data-i18n], .prose > p[data-i18n]:not(.eyebrow), .tile p[data-i18n], .cta p[data-i18n], .menu-teaser p[data-i18n]"));
+  var wordEls = Array.prototype.slice.call(document.querySelectorAll(".lead[data-i18n], .prose > p[data-i18n]:not(.eyebrow), .g-text > p[data-i18n]:not(.eyebrow), .tile p[data-i18n], .cta p[data-i18n], .menu-teaser p[data-i18n]"));
   if (!reduced) wordEls.forEach(function (el) { el.classList.add("words"); colorWords(el); });
   function paintWords() {
     var vh = window.innerHeight;
@@ -220,7 +220,7 @@
   }
   // round badge turns while scrolling
   var badges = document.querySelectorAll(".spin-badge svg");
-  var arches = document.querySelectorAll(".hero-arch, .split-media .media, .tile .media, .page-hero .hero-media");
+  var arches = document.querySelectorAll(".hero-arch, .split-media .media, .tile .media, .page-hero .hero-media, .g-media .media");
   function flattenArches() {
     var vh = window.innerHeight;
     arches.forEach(function (m) {
