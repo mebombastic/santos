@@ -220,14 +220,26 @@
   }
   // round badge turns while scrolling
   var badges = document.querySelectorAll(".spin-badge svg");
+  var arches = document.querySelectorAll(".hero-arch, .split-media .media, .tile .media, .page-hero .hero-media");
+  function flattenArches() {
+    var vh = window.innerHeight;
+    arches.forEach(function (m) {
+      var r = m.getBoundingClientRect();
+      if (r.bottom < -50 || r.top > vh + 50) return;
+      var c = (r.top + r.height / 2) / vh;
+      var a = Math.max(0, Math.min(1, (c - 0.12) / 0.4));
+      m.style.setProperty("--a", a.toFixed(3));
+    });
+  }
   function spinBadges() { badges.forEach(function (b) { b.style.transform = "rotate(" + (window.scrollY * 0.18) + "deg)"; }); }
   var ticking = false;
   window.addEventListener("scroll", function () {
     if (ticking) return; ticking = true;
-    requestAnimationFrame(function () { paintWords(); spinBadges(); ticking = false; });
+    requestAnimationFrame(function () { paintWords(); spinBadges(); flattenArches(); ticking = false; });
   }, { passive: true });
   window.addEventListener("load", paintWords);
   setTimeout(paintWords, 300);
+  flattenArches();
 
   var savedLang = null;
   try { savedLang = localStorage.getItem("santos-lang"); } catch (e) {}
@@ -361,8 +373,58 @@
 
   // the first photo opens out of its thick frame once the intro has finished
   var firstPhotos = document.querySelectorAll(".hero-arch, .page-hero .hero-media");
-  setTimeout(function () { firstPhotos.forEach(function (m) { m.classList.add("in"); }); },
-    document.querySelector(".intro-gate") && !root.classList.contains("intro-seen") && !reduced ? 1700 : 250);
+  function openFirstPhotos() { firstPhotos.forEach(function (m) { m.classList.add("in"); }); }
+  var gate = document.querySelector(".intro-gate");
+  if (gate && !root.classList.contains("intro-seen") && !reduced && gate.animate && document.querySelector(".hero-arch")) runIntro(gate);
+  else { if (gate) gate.remove(); setTimeout(openFirstPhotos, 250); }
+
+  // Intro: a cream layer with arch-shaped openings rises from burgundy, then zooms into
+  // the middle opening until it lands exactly on the photo arch of the page.
+  function runIntro(gate) {
+    var go = function () {
+      var hero = document.querySelector(".hero-arch");
+      var r = hero.getBoundingClientRect(), w = r.width, h = r.height, vh = window.innerHeight;
+      var NS = "http://www.w3.org/2000/svg";
+      var wrap = document.createElement("div");
+      wrap.className = "ig-wrap";
+      wrap.style.cssText = "left:" + r.left + "px;top:" + r.top + "px;width:" + w + "px;height:" + h + "px";
+      var photo = document.createElement("div");
+      photo.className = "ig-photo";
+      var heroImg = hero.querySelector("img");
+      if (heroImg) { var im = document.createElement("img"); im.src = heroImg.currentSrc || heroImg.src; im.alt = ""; photo.appendChild(im); }
+      var arch = function (x, aw, ah) { var top = h - ah; return "M" + x + " " + h + "V" + (top + aw / 2) + "A" + aw / 2 + " " + aw / 2 + " 0 0 1 " + (x + aw) + " " + (top + aw / 2) + "V" + h + "Z"; };
+      var d = "M" + (-8 * w) + " " + (-0.22 * h) + "H" + (9 * w) + "V" + (10 * h) + "H" + (-8 * w) + "Z"
+        + arch(0, w, h) + arch(-1.55 * w, 0.62 * w, 0.78 * h) + arch(1.93 * w, 0.62 * w, 0.78 * h)
+        + arch(-2.75 * w, 0.5 * w, 0.62 * h) + arch(3.25 * w, 0.5 * w, 0.62 * h);
+      var svg = document.createElementNS(NS, "svg");
+      svg.setAttribute("width", w); svg.setAttribute("height", h); svg.setAttribute("viewBox", "0 0 " + w + " " + h);
+      svg.style.cssText = "left:0;top:0";
+      var path = document.createElementNS(NS, "path");
+      path.setAttribute("d", d); path.setAttribute("fill-rule", "evenodd");
+      path.setAttribute("fill", getComputedStyle(document.body).backgroundColor);
+      svg.appendChild(path);
+      wrap.append(photo, svg);
+      gate.appendChild(wrap);
+      var s0 = 0.34;
+      var ty0 = vh - r.bottom + 1.3 * h * s0, ty1 = vh - r.bottom + 0.02 * h;
+      var anim = wrap.animate([
+        { transform: "translateY(" + ty0 + "px) scale(" + s0 + ")", offset: 0 },
+        { transform: "translateY(" + ty1 + "px) scale(" + s0 + ")", offset: 0.42, easing: "cubic-bezier(0.65, 0, 0.35, 1)" },
+        { transform: "translateY(" + ty1 + "px) scale(" + s0 + ")", offset: 0.5, easing: "cubic-bezier(0.7, 0, 0.2, 1)" },
+        { transform: "none", offset: 1 }
+      ], { duration: 2300, easing: "cubic-bezier(0.33, 1, 0.68, 1)", fill: "forwards" });
+      anim.onfinish = function () {
+        gate.style.background = "transparent";
+        var fade = gate.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 450, fill: "forwards" });
+        setTimeout(openFirstPhotos, 120);
+        fade.onfinish = function () { gate.remove(); };
+      };
+    };
+    var started = false;
+    var once = function () { if (!started) { started = true; requestAnimationFrame(go); } };
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(once);
+    setTimeout(once, 600);
+  }
 
   function observeAll() {
     var els = document.querySelectorAll(".reveal, .reveal-3d, .split, .line-grow, .ring-score, .stars-fill, [data-count], .media:not(.hero-arch):not(.hero-media), .link-arrow, .rule");
