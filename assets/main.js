@@ -17,7 +17,10 @@
     "hours.value": "Every day · 10:00 – 23:00",
     "hero.eyebrow": "Restaurant · Reçan, Prizren · Since 1985",
     "hero.sub": "Refined flavour and heartfelt hospitality, in the calm of Reçan.",
-    "hero.rating": "29 reviews on Google", "hero.w1": "Welcome", "hero.w2": "to", "hero.cta2": "Discover the kitchen",
+    "hero.rating": "29 reviews on Google", "hero.w1": "Welcome", "hero.w2": "to",
+    "menu.lang": "Change language", "footer.lang": "Language", "about.caption": "Main dining room",
+    "ab.w1": "Our", "ab.w2": "story", "mh.w1": "The flavours of", "mh.w2": "Santos",
+    "mi.1a": "Wine", "mi.1b": "List", "mi.2a": "Starters", "mi.2b": "& Salads", "mi.3a": "From the", "mi.3b": "Grill", "mi.4a": "House", "mi.4b": "Specialities", "hero.cta2": "Discover the kitchen",
     "cta.eyebrow": "Reservations", "cta.reserve": "Reserve a table", "cta.call": "Call us",
     "intro.eyebrow": "Welcome", "intro.title": "Where flavour meets elegance",
     "intro.p1": "Santos is a place to slow down: a carefully laid table, dishes prepared with passion and a warm atmosphere that makes you feel welcome from the very first step.",
@@ -82,7 +85,10 @@
     "hours.value": "Svaki dan · 10:00 – 23:00",
     "hero.eyebrow": "Restoran · Rečane, Prizren · Od 1985.",
     "hero.sub": "Profinjen ukus i iskreno gostoprimstvo, u miru Rečana.",
-    "hero.rating": "29 recenzija na Googleu", "hero.w1": "Dobrodošli", "hero.w2": "u", "hero.cta2": "Otkrijte kuhinju",
+    "hero.rating": "29 recenzija na Googleu", "hero.w1": "Dobrodošli", "hero.w2": "u",
+    "menu.lang": "Promijeni jezik", "footer.lang": "Jezik", "about.caption": "Glavna sala",
+    "ab.w1": "Naša", "ab.w2": "priča", "mh.w1": "Ukusi", "mh.w2": "Santosa",
+    "mi.1a": "Vinska", "mi.1b": "Karta", "mi.2a": "Predjela", "mi.2b": "i Salate", "mi.3a": "Sa", "mi.3b": "Roštilja", "mi.4a": "Specijaliteti", "mi.4b": "Kuće", "hero.cta2": "Otkrijte kuhinju",
     "cta.eyebrow": "Rezervacije", "cta.reserve": "Rezervišite sto", "cta.call": "Pozovite nas",
     "intro.eyebrow": "Dobrodošli", "intro.title": "Gdje se ukus susreće s elegancijom",
     "intro.p1": "Santos je mjesto gdje se usporava: pažljivo postavljen sto, jela pripremljena sa strašću i topla atmosfera zbog koje se osjećate dobrodošlo od prvog koraka.",
@@ -205,7 +211,7 @@
       if (i < words.length - 1) el.appendChild(document.createTextNode(" "));
     });
   }
-  var wordEls = Array.prototype.slice.call(document.querySelectorAll(".lead[data-i18n], .prose > p[data-i18n]:not(.eyebrow), .g-text > p[data-i18n]:not(.eyebrow), .tile p[data-i18n], .cta p[data-i18n], .menu-teaser p[data-i18n]"));
+  var wordEls = Array.prototype.slice.call(document.querySelectorAll(".lead[data-i18n], .prose > p[data-i18n]:not(.eyebrow), .g-text > p[data-i18n]:not(.eyebrow), .ab-text p[data-i18n], .tile p[data-i18n], .cta p[data-i18n], .menu-teaser p[data-i18n]"));
   if (!reduced) wordEls.forEach(function (el) { el.classList.add("words"); colorWords(el); });
   function paintWords() {
     var vh = window.innerHeight;
@@ -252,6 +258,28 @@
   document.querySelectorAll("[data-year]").forEach(function (el) { el.textContent = new Date().getFullYear(); });
 
   // ---------------- Curtain & page transitions ----------------
+  // ---------------- Page transition: burgundy wipe ----------------
+  var wipe = document.querySelector(".page-wipe");
+  if (wipe) {
+    var arriving = false;
+    try { arriving = sessionStorage.getItem("santos-wipe") === "1"; sessionStorage.removeItem("santos-wipe"); } catch (e) {}
+    if (arriving) { wipe.classList.add("cover"); requestAnimationFrame(function () { requestAnimationFrame(function () { wipe.classList.add("out"); }); }); }
+    document.addEventListener("click", function (e) {
+      var a = e.target.closest && e.target.closest("a[href]");
+      if (!a || a.target === "_blank" || e.metaKey || e.ctrlKey || e.shiftKey || e.button !== 0) return;
+      var href = a.getAttribute("href");
+      if (!/^[\w-]+\.html(#.*)?$/.test(href)) return;
+      e.preventDefault();
+      document.body.classList.remove("menu-open");
+      try { sessionStorage.setItem("santos-wipe", "1"); } catch (err) {}
+      wipe.classList.remove("cover", "out");
+      void wipe.offsetWidth;
+      wipe.classList.add("in");
+      setTimeout(function () { location.href = href; }, 620);
+    });
+    window.addEventListener("pageshow", function (e) { if (e.persisted) { wipe.classList.remove("in"); wipe.classList.add("cover", "out"); } });
+  }
+
   var curtain = document.querySelector(".curtain");
   var heroTitle = document.querySelector(".hero-title");
   if (heroTitle) {
@@ -611,9 +639,10 @@
     var pick = function (label) { return typeof label === "string" ? label : (label[lang] || label.sq || label.en || ""); };
     var renderMenu = function () {
       menuRoot.textContent = "";
-      menu.forEach(function (cat) {
+      menu.forEach(function (cat, ci) {
         var h = document.createElement("h2");
         h.className = "menu-cat-title";
+        h.id = "cat-" + ci;
         h.textContent = pick(cat.category);
         var list = document.createElement("div");
         list.className = "menu-list";
