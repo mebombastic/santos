@@ -160,6 +160,7 @@
       if (!v) return;
       el.textContent = v;
       if (el.classList.contains("split")) splitWords(el, el.classList.contains("in"));
+      if (el.classList.contains("words")) colorWords(el);
     });
     phNodes.forEach(function (el) {
       var v = dict ? dict[el.dataset.i18nPh] : SQ["ph:" + el.dataset.i18nPh];
@@ -191,6 +192,42 @@
     el.setAttribute("aria-label", words.join(" "));
   }
   document.querySelectorAll(".split").forEach(function (el) { splitWords(el, false); });
+
+  // ---------------- Words that darken as you scroll (Gucci-style) ----------------
+  function colorWords(el) {
+    var words = el.textContent.trim().split(/\s+/);
+    el.textContent = "";
+    words.forEach(function (w, i) {
+      var span = document.createElement("span");
+      span.className = "cw";
+      span.textContent = w;
+      el.appendChild(span);
+      if (i < words.length - 1) el.appendChild(document.createTextNode(" "));
+    });
+  }
+  var wordEls = Array.prototype.slice.call(document.querySelectorAll(".lead[data-i18n], .prose > p[data-i18n]:not(.eyebrow), .tile p[data-i18n], .cta p[data-i18n], .menu-teaser p[data-i18n]"));
+  if (!reduced) wordEls.forEach(function (el) { el.classList.add("words"); colorWords(el); });
+  function paintWords() {
+    var vh = window.innerHeight;
+    wordEls.forEach(function (el) {
+      if (!el.classList.contains("words")) return;
+      var r = el.getBoundingClientRect();
+      if (r.bottom < 0 || r.top > vh) return;
+      var prog = Math.max(0, Math.min(1, (vh * 0.9 - r.top) / (vh * 0.45 + r.height * 0.6)));
+      var spans = el.querySelectorAll(".cw"), lit = Math.round(prog * spans.length);
+      for (var i = 0; i < spans.length; i++) spans[i].classList.toggle("on", i < lit);
+    });
+  }
+  // round badge turns while scrolling
+  var badges = document.querySelectorAll(".spin-badge svg");
+  function spinBadges() { badges.forEach(function (b) { b.style.transform = "rotate(" + (window.scrollY * 0.18) + "deg)"; }); }
+  var ticking = false;
+  window.addEventListener("scroll", function () {
+    if (ticking) return; ticking = true;
+    requestAnimationFrame(function () { paintWords(); spinBadges(); ticking = false; });
+  }, { passive: true });
+  window.addEventListener("load", paintWords);
+  setTimeout(paintWords, 300);
 
   var savedLang = null;
   try { savedLang = localStorage.getItem("santos-lang"); } catch (e) {}
@@ -322,8 +359,13 @@
     });
   }, { threshold: 0.15, rootMargin: "0px 0px -40px 0px" }) : null;
 
+  // the first photo opens out of its thick frame once the intro has finished
+  var firstPhotos = document.querySelectorAll(".hero-arch, .page-hero .hero-media");
+  setTimeout(function () { firstPhotos.forEach(function (m) { m.classList.add("in"); }); },
+    document.querySelector(".intro-gate") && !root.classList.contains("intro-seen") && !reduced ? 1700 : 250);
+
   function observeAll() {
-    var els = document.querySelectorAll(".reveal, .reveal-3d, .split, .line-grow, .ring-score, .stars-fill, [data-count]");
+    var els = document.querySelectorAll(".reveal, .reveal-3d, .split, .line-grow, .ring-score, .stars-fill, [data-count], .media:not(.hero-arch):not(.hero-media), .link-arrow, .rule");
     if (!io) { els.forEach(function (el) { el.classList.add("in"); }); return; }
     // stagger siblings that enter together
     document.querySelectorAll(".tiles, .values, .features, .stats, .hero-content").forEach(function (group) {
