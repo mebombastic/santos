@@ -1,0 +1,17 @@
+<!doctype html>
+<html lang="bs"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="robots" content="noindex">
+<title>Santos test</title>
+<style>body{font:20px/1.5 -apple-system,system-ui,sans-serif;margin:0;padding:24px;background:#f4ece0;color:#2b1714}h1{font-size:26px}li{margin:10px 0}b{color:#6b2322}.ok{color:#1f7a4d}.no{color:#b00020}</style></head>
+<body><h1>Santos – provjera</h1><ul id="out"></ul>
+<p>Napravite screenshot ove stranice i pošaljite ga.</p>
+<script>
+var out=document.getElementById('out');
+function row(label, ok, val){var li=document.createElement('li');li.innerHTML=label+': <b class="'+(ok?'ok':'no')+'">'+val+'</b>';out.appendChild(li);}
+row('Verzija sajta', true, 'da519da+test');
+var rm = matchMedia('(prefers-reduced-motion: reduce)').matches;
+row('Smanji pokret (Reduce Motion)', !rm, rm ? 'UKLJUČENO – animacije su ugašene' : 'isključeno');
+row('Animacije podržane (Element.animate)', !!document.body.animate, document.body.animate ? 'da' : 'NE');
+row('clip-path podržan', CSS.supports('clip-path','inset(0 round 10px)'), CSS.supports('clip-path','inset(0 round 10px)') ? 'da' : 'NE');
+row('Preglednik', true, navigator.userAgent.replace(/</g,''));
+fetch('index.html',{cache:'no-store'}).then(function(r){return r.text()}).then(function(t){var m=t.match(/main\.js\?v=([a-f0-9]+)/);row('Početna stranica na serveru (main.js)', true, m?m[1]:'?');});
+</script></body></html>
