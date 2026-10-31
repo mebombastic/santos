@@ -406,53 +406,50 @@
   if (gate && !root.classList.contains("intro-seen") && !reduced && gate.animate && document.querySelector(".hero-arch")) runIntro(gate);
   else { if (gate) gate.remove(); setTimeout(openFirstPhotos, 250); }
 
-  // Intro: a cream layer with arch-shaped openings rises from burgundy, then zooms into
-  // the middle opening until it lands exactly on the photo arch of the page.
+  // Intro: burgundy screen with the Santos logo "loading" (~2 s), then an arch-shaped
+  // window opens from the photo arch and grows until the whole site is revealed.
   function runIntro(gate) {
-    var go = function () {
+    var logo = document.querySelector(".nav .brand");
+    var loader = document.createElement("div");
+    loader.className = "ig-loader";
+    if (logo) {
+      var l = logo.cloneNode(true);
+      l.removeAttribute("href"); l.classList.add("logo-light");
+      loader.appendChild(l);
+    }
+    var bar = document.createElement("div");
+    bar.className = "ig-bar";
+    bar.appendChild(document.createElement("i"));
+    loader.appendChild(bar);
+    gate.appendChild(loader);
+
+    setTimeout(function () {
+      loader.classList.add("done");
+      setTimeout(function () { reveal(); }, 250);
+    }, 2000);
+
+    function reveal() {
       var hero = document.querySelector(".hero-arch");
-      var r = hero.getBoundingClientRect(), w = r.width, h = r.height, vh = window.innerHeight;
-      var NS = "http://www.w3.org/2000/svg";
-      var wrap = document.createElement("div");
-      wrap.className = "ig-wrap";
-      wrap.style.cssText = "left:" + r.left + "px;top:" + r.top + "px;width:" + w + "px;height:" + h + "px";
-      var photo = document.createElement("div");
-      photo.className = "ig-photo";
-      var heroImg = hero.querySelector("img");
-      if (heroImg) { var im = document.createElement("img"); im.src = heroImg.currentSrc || heroImg.src; im.alt = ""; photo.appendChild(im); }
-      var arch = function (x, aw, ah) { var top = h - ah; return "M" + x + " " + h + "V" + (top + aw / 2) + "A" + aw / 2 + " " + aw / 2 + " 0 0 1 " + (x + aw) + " " + (top + aw / 2) + "V" + h + "Z"; };
-      var d = "M" + (-8 * w) + " " + (-0.22 * h) + "H" + (9 * w) + "V" + (10 * h) + "H" + (-8 * w) + "Z"
-        + arch(0, w, h) + arch(-1.55 * w, 0.62 * w, 0.78 * h) + arch(1.93 * w, 0.62 * w, 0.78 * h)
-        + arch(-2.75 * w, 0.5 * w, 0.62 * h) + arch(3.25 * w, 0.5 * w, 0.62 * h);
-      var svg = document.createElementNS(NS, "svg");
-      svg.setAttribute("width", w); svg.setAttribute("height", h); svg.setAttribute("viewBox", "0 0 " + w + " " + h);
-      svg.style.cssText = "left:0;top:0";
-      var path = document.createElementNS(NS, "path");
-      path.setAttribute("d", d); path.setAttribute("fill-rule", "evenodd");
-      path.setAttribute("fill", getComputedStyle(document.body).backgroundColor);
-      svg.appendChild(path);
-      wrap.append(photo, svg);
-      gate.appendChild(wrap);
-      var s0 = 0.34;
-      var ty0 = vh - r.bottom + 1.3 * h * s0, ty1 = vh - r.bottom + 0.02 * h;
-      var anim = wrap.animate([
-        { transform: "translateY(" + ty0 + "px) scale(" + s0 + ")", offset: 0 },
-        { transform: "translateY(" + ty1 + "px) scale(" + s0 + ")", offset: 0.42, easing: "cubic-bezier(0.65, 0, 0.35, 1)" },
-        { transform: "translateY(" + ty1 + "px) scale(" + s0 + ")", offset: 0.5, easing: "cubic-bezier(0.7, 0, 0.2, 1)" },
-        { transform: "none", offset: 1 }
-      ], { duration: 2300, easing: "cubic-bezier(0.33, 1, 0.68, 1)", fill: "forwards" });
-      anim.onfinish = function () {
-        gate.style.background = "transparent";
-        var fade = gate.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 450, fill: "forwards" });
-        setTimeout(openFirstPhotos, 120);
-        fade.onfinish = function () { gate.remove(); };
-      };
-    };
-    var started = false;
-    var once = function () { if (!started) { started = true; requestAnimationFrame(go); } };
-    if (document.fonts && document.fonts.ready) document.fonts.ready.then(once);
-    setTimeout(once, 600);
+      var r = hero.getBoundingClientRect(), w = r.width, h = r.height;
+      var cx = r.left + w / 2, cy = r.top + h * 0.6;
+      var bg = getComputedStyle(gate).backgroundColor;
+      var hole = document.createElement("div");
+      hole.className = "ig-hole";
+      hole.style.boxShadow = "0 0 0 300vmax " + bg;
+      var frame = function (k) { var ww = w * k, hh = h * k; return { left: (cx - ww / 2) + "px", top: (cy - hh * 0.6) + "px", width: ww + "px", height: hh + "px" }; };
+      var f0 = frame(0.02);
+      for (var key in f0) hole.style[key] = f0[key];
+      gate.appendChild(hole);
+      gate.style.background = "transparent";
+      var f1 = frame(1), f2 = frame(7);
+      f0.easing = "cubic-bezier(0.3, 0.7, 0.4, 1)"; f1.offset = 0.45; f1.easing = "cubic-bezier(0.7, 0, 0.3, 1)";
+      var open = hole.animate([f0, f1, f2], { duration: 1700, fill: "forwards" });
+      setTimeout(openFirstPhotos, 700);
+      open.onfinish = function () { gate.remove(); };
+    }
   }
+
+
 
   function observeAll() {
     var els = document.querySelectorAll(".reveal, .reveal-3d, .split, .line-grow, .ring-score, .stars-fill, [data-count], .media:not(.hero-arch):not(.hero-media), .link-arrow, .rule");

@@ -419,10 +419,20 @@ p { margin: 0 0 1.1em; }
 /* ---------- Opening animation (home, once per visit): zoom into an arch ---------- */
 .intro-gate { position: fixed; inset: 0; z-index: 300; background: var(--wine); overflow: hidden; pointer-events: none; }
 .intro-gate .ig-wrap { position: absolute; transform-origin: 50% 100%; will-change: transform; }
-.intro-gate svg { position: absolute; overflow: visible; }
+.intro-gate > svg { position: absolute; overflow: visible; }
 .intro-gate .ig-photo { position: absolute; inset: 0; background: var(--wine); border-radius: 50% 50% 0 0 / 40% 40% 0 0; overflow: hidden; }
 .intro-gate .ig-photo img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; clip-path: inset(9% 9% 0 9% round 999px 999px 0 0); }
 .no-js .intro-gate, .intro-seen .intro-gate { display: none; }
+
+/* intro: logo + loading line on burgundy */
+.ig-hole { position: absolute; border-radius: 50% 50% 0 0 / 40% 40% 0 0; pointer-events: none; }
+.ig-loader { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2rem; z-index: 2; animation: igIn 0.7s var(--ease-out) backwards; transition: opacity 0.45s var(--ease), transform 0.6s var(--ease); }
+.ig-loader.done { opacity: 0; transform: scale(0.96); }
+.ig-loader .brand.logo { font-size: clamp(24px, 6vw, 34px); pointer-events: none; }
+.ig-bar { width: min(180px, 46vw); height: 1px; background: rgba(244, 236, 224, 0.22); overflow: hidden; }
+.ig-bar i { display: block; height: 100%; background: #e6cc94; transform: scaleX(0); transform-origin: left; animation: igLoad 1.8s cubic-bezier(0.45, 0, 0.2, 1) 0.2s forwards; }
+@keyframes igIn { from { opacity: 0; transform: translateY(10px); } }
+@keyframes igLoad { to { transform: scaleX(1); } }
 
 /* ---------- Photos: a burgundy dome rises, the photo opens out of its frame ---------- */
 .js .media { background: var(--wine); }
