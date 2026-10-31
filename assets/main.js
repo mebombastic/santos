@@ -4,7 +4,7 @@
   // WhatsApp number (digits only) used to add the greeting in the visitor's language.
   var WHATSAPP = "38345949002";
 
-  var reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  var reduced = false; // animations always on, like the reference site
   var root = document.documentElement;
   root.classList.remove("no-js");
   root.classList.add("js");
